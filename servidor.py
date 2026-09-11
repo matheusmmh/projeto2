@@ -19,3 +19,27 @@ Buscar imóveis por tipo (casa, apartamento, terreno, etc) com todos os seus atr
 
 Buscar imóveis por cidade com todos os seus atributos;
 '''
+
+@app.route("/imoveis", method=["GET"])
+def lista_imoveis():
+    return
+
+@app.route("/imovel", method=["GET"])
+def busca_imovel():
+    return
+
+@app.route("/adicionar-imovel", method=["UPDATE"])
+def adiciona_imovel():
+    return
+
+@app.route("/remover-imovel", method=["DELETE"])
+def remove_imovel():
+    return
+
+@app.route("/tipo-imovel", method=["GET"])
+def busca_tipo_imovel():
+    return
+
+@app.route("/cidade-imovel", method=["GET"])
+def busca_cidade_imovel():
+    return
