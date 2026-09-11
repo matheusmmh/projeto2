@@ -28,7 +28,7 @@ def lista_imoveis():
 def busca_imovel():
     return
 
-@app.route("/adicionar-imovel", method=["UPDATE"])
+@app.route("/adicionar-imovel", method=["POST"])
 def adiciona_imovel():
     return
 
