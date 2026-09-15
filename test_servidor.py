@@ -314,6 +314,73 @@ def test_busca_por_tipo_ausente(client):
     assert erro["erro"].strip()
     obter_conexao.assert_not_called()
 
-def test_busca_imovel_cidade():
-    return
 
+def simular_busca_por_cidade(client, cidade, imoveis_encontrados):
+    cursor = MagicMock()
+    cursor.fetchall.return_value = imoveis_encontrados
+    conexao = MagicMock()
+    conexao.cursor.return_value = cursor
+
+    with patch("servidor.db_pool.get_connection", return_value=conexao):
+        resposta = client.get(
+            "/cidade-imovel",
+            query_string={"cidade": cidade},
+        )
+
+    return resposta
+
+def test_busca_imoveis_por_cidade(client):
+    imoveis = [{"id": 1, "cidade": "São Paulo"}]
+    resposta = simular_busca_por_cidade(client, "São Paulo", imoveis)
+
+    assert resposta.status_code == 200
+    assert resposta.get_json() == imoveis
+
+def test_busca_por_cidade_retorna_apenas_cidade_solicitada(client):
+    imoveis = [
+        {"id": 1, "cidade": "São Paulo"},
+        {"id": 2, "cidade": "São Paulo"},
+    ]
+
+    resposta = simular_busca_por_cidade(client, "São Paulo", imoveis)
+
+    for imovel in resposta.get_json():
+        assert imovel["cidade"] == "São Paulo"
+
+def test_busca_por_cidade_sem_resultados(client):
+    resposta = simular_busca_por_cidade(client, "Cidade Inexistente", [])
+
+    assert resposta.status_code == 200
+    assert resposta.get_json() == []
+
+def test_busca_por_cidade_ausente(client):
+    with patch("servidor.db_pool.get_connection") as banco:
+        resposta = client.get("/cidade-imovel")
+
+    assert resposta.status_code in (400, 422)
+    banco.assert_not_called()
+
+def test_busca_por_cidade_com_acentos(client):
+    cidade = "São José dos Campos"
+    imoveis = [{"id": 3, "cidade": cidade}]
+    
+    resposta = simular_busca_por_cidade(client, cidade, imoveis)
+
+    assert resposta.get_json() == imoveis
+
+
+def test_busca_por_cidade_com_espacos(client):
+    cidade = "New Brandonborough"
+    imoveis = [{"id": 1000, "cidade": cidade}]
+
+    resposta = simular_busca_por_cidade(client, cidade, imoveis)
+
+    assert resposta.get_json() == imoveis
+
+
+def test_busca_por_cidade_case_insensitive(client):
+    imoveis = [{"id": 1, "cidade": "São Paulo"}]
+
+    resposta = simular_busca_por_cidade(client, "sÃo pAuLo", imoveis)
+
+    assert resposta.get_json() == imoveis
