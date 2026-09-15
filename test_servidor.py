@@ -18,18 +18,28 @@ def existe_imovel(lista, esperado):
         all(imovel.get(campo) == valor for campo, valor in esperado.items())
         for imovel in lista
     )
-def test_lista_imoveis_retorna_status_200(client):
+
+@patch("servidor.db_pool")
+def test_lista_imoveis_retorna_status_200(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchall.return_value = []
+
     response = client.get("/imoveis")
     assert response.status_code == 200
 
-def test_lista_imoveis_retorna_lista_vazia(client):
+@patch("servidor.db_pool")
+def test_lista_imoveis_retorna_lista_vazia(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchall.return_value = []
+
     imoveis = client.get("/imoveis")
     retorno = imoveis.get_json()
-    assert retorno != []
 
-def test_lista_imoveis(client):
-    imoveis = client.get("/imoveis")
-    imoveis_retornados = imoveis.get_json()
+    assert retorno == []
+
+@patch("servidor.db_pool")
+def test_lista_imoveis(mock_pool, client):
+
     imoveis_esperados = [
         {'id': 1000, 'logradouro': 'Wheeler Falls', 'tipo_logradouro': 'Avenida', 'bairro': 'Matthewbury', 'cidade': 'New Brandonborough', 'cep': '18235', 'tipo': 'terreno', 'valor': 875932.0, 'data_aquisicao': '2023-01-23'},
         {'id': 812, 'logradouro': 'Jason Club', 'tipo_logradouro': 'Rua', 'bairro': 'Caldwelltown', 'cidade': 'Port Michael', 'cep': '30797', 'tipo': 'terreno', 'valor': 636953.0, 'data_aquisicao': '2020-02-12'},
@@ -38,7 +48,11 @@ def test_lista_imoveis(client):
         {'id': 647, 'logradouro': 'Lori Islands', 'tipo_logradouro': 'Alameda', 'bairro': 'North Beth', 'cidade': 'Jonesport', 'cep': '78411', 'tipo': 'casa em condominio', 'valor': 857538.0, 'data_aquisicao': '2018-05-20'},
     ]
 
-    imoveis_retornados = imoveis.get_json()
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchall.return_value = imoveis_esperados
+
+    resposta = client.get("/imoveis")
+    imoveis_retornados = resposta.get_json()
 
     for imovel in imoveis_esperados:
         assert existe_imovel(imoveis_retornados, imovel)

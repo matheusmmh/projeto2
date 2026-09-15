@@ -29,8 +29,15 @@ Buscar imóveis por cidade com todos os seus atributos;
 
 @app.route("/imoveis", methods=["GET"])
 def lista_imoveis():
+    conn = db_pool.get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    return
+    cursor.execute("SELECT * FROM imoveis")
+    imoveis = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return jsonify(imoveis),200
 
 @app.route("/imovel", methods=["GET"])
 def busca_imovel():
