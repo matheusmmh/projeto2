@@ -314,8 +314,6 @@ def test_busca_por_tipo_ausente(client):
     assert erro["erro"].strip()
     obter_conexao.assert_not_called()
 
-def test_busca_imovel_tipo():
-    return
 def test_busca_imovel_cidade():
     return
 
