@@ -36,11 +36,11 @@ def lista_imoveis():
 def busca_imovel():
     return
 
-@app.route("/adicionar-imovel", methods=["POST"])
+@app.route("/imovel", methods=["POST"])
 def adiciona_imovel():
     return
 
-@app.route("/remover-imovel", methods=["DELETE"])
+@app.route("/imovel", methods=["DELETE"])
 def remove_imovel():
     return
 

@@ -11,7 +11,7 @@ def lista_todos_imoveis():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM defaultdb.imoveis;")
     imoveis = cursor.fetchall()
-    return
+    return imoveis
 
 def escolhe_imovel_por_id():
     conn = db_pool.get_connection()

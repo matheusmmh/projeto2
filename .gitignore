@@ -1,3 +1,5 @@
 venv
 ca.pem
 .env
+__pycache__/
+*.pyc
