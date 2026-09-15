@@ -1,41 +1,42 @@
 from flask import Flask, request
-import os
 import mysql.connector
 from mysql.connector import Error
-from dotenv import load_dotenv
+from config import config
+from unittest.mock import MagicMock, patch
+from servidor import app
 
-# Carrega as variáveis de ambiente do arquivo .cred (se disponível)
-load_dotenv('.cred')
+def client():
+    app.config["TESTING"] = True
+    return app.test_client()
+#caso alguma função tenha que olhar campos especificos
+def existe_imovel(lista,esperado):
+    return any(all(imovel.get(campo) == valor for campo, valor in esperado.items() 
+                   for imovel in lista))
 
-# Configurações para conexão com o banco de dados usando variáveis de ambiente
-config = {
-    'host': os.getenv('DB_HOST'),  # Obtém o host do banco de dados da variável de ambiente
-    'user': os.getenv('DB_USER'),  # Obtém o usuário do banco de dados da variável de ambiente
-    'password': os.getenv('DB_PASSWORD'),  # Obtém a senha do banco de dados da variável de ambiente
-    'database': os.getenv('DB_NAME'),  # Obtém o nome do banco de dados da variável de ambiente
-    'port': int(os.getenv('DB_PORT')),  # Obtém a porta do banco de dados da variável de ambiente
-    'ssl_ca': os.getenv('SSL_CA_PATH'),  # Caminho para o certificado SSL
-}
+def test_lista_imoveis(client):
+    imoveis = client.get("/imoveis")
 
+    assert imoveis.status_code == 200
 
-# Função para conectar ao banco de dados
-def connect_db():
-    """Estabelece a conexão com o banco de dados usando as configurações fornecidas."""
-    try:
-        # Tenta estabelecer a conexão com o banco de dados usando mysql-connector-python
-        conn = mysql.connector.connect(**config)
-        if conn.is_connected():
-            return conn
-    except Error as err:
-        # Em caso de erro, imprime a mensagem de erro
-        print(f"Erro: {err}")
-        return None
+    imoveis_retornados = imoveis.json
+    imoveis_esperados = [
+        {'id': 1000, 'logradouro': 'Wheeler Falls', 'tipo_logradouro': 'Avenida', 'bairro': 'Matthewbury', 'cidade': 'New Brandonborough', 'cep': '18235', 'tipo': 'terreno', 'valor': 875932.0, 'data_aquisicao': '2023-01-23'},
+        {'id': 812, 'logradouro': 'Jason Club', 'tipo_logradouro': 'Rua', 'bairro': 'Caldwelltown', 'cidade': 'Port Michael', 'cep': '30797', 'tipo': 'terreno', 'valor': 636953.0, 'data_aquisicao': '2020-02-12'},
+        {'id': 706, 'logradouro': 'Jessica Burg', 'tipo_logradouro': 'Alameda', 'bairro': 'Lake Sherriland', 'cidade': 'Donaldshire', 'cep': '56944', 'tipo': 'apartamento', 'valor': 180944.0, 'data_aquisicao': '2016-06-04'},
+        {'id': 650, 'logradouro': 'Sanchez Unions', 'tipo_logradouro': 'Alameda', 'bairro': 'North Brandon', 'cidade': 'Port Christina', 'cep': '71909', 'tipo': 'casa em condominio', 'valor': 388301.0, 'data_aquisicao': '2017-12-06'},
+        {'id': 647, 'logradouro': 'Lori Islands', 'tipo_logradouro': 'Alameda', 'bairro': 'North Beth', 'cidade': 'Jonesport', 'cep': '78411', 'tipo': 'casa em condominio', 'valor': 857538.0, 'data_aquisicao': '2018-05-20'}
+    ]
+    for imovel in imoveis_esperados[-1]:
+        assert imovel in imoveis_esperados
+    
+def test_busca_imovel():
+    return
+def test_adiciona_imovel():
+    return
+def test_remove_imovel():
+    return
+def test_busca_imovel_tipo():
+    return
+def test_busca_imovel_cidade():
+    return
 
-
-app = Flask(__name__)
-
-
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
