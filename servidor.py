@@ -39,8 +39,8 @@ def lista_imoveis():
     conn.close()
     return jsonify(imoveis),200
 
-@app.route("/imovel", methods=["GET"])
-def busca_imovel():
+@app.route("/imovel/<int:id>", methods=["GET"])
+def busca_imovel(id):
     return
 
 @app.route("/imovel", methods=["POST"])

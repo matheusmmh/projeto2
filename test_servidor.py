@@ -57,11 +57,16 @@ def test_lista_imoveis(mock_pool, client):
     for imovel in imoveis_esperados:
         assert existe_imovel(imoveis_retornados, imovel)
 
-def test_imovel_retorna_status_200(client):
+@patch("servidor.db_pool")
+def test_imovel_retorna_status_200(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchone.return_value = {"id": 1}
+
     response = client.get("/imovel/1")
     assert response.status_code == 200
 
-def test_busca_imovel(client):
+@patch("servidor.db_pool")
+def test_busca_imovel(mock_pool, client):
     imovel_esperado = {
         'id': 1000,
         'logradouro': 'Wheeler Falls',
@@ -74,6 +79,9 @@ def test_busca_imovel(client):
         'data_aquisicao': '2023-01-23',
     }
 
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchone.return_value = imovel_esperado
+
     resposta = client.get("/imovel/1000")
 
     assert resposta.status_code == 200
@@ -85,11 +93,20 @@ def test_busca_imovel_id_textual(client, id_textual):
 
     assert resposta.status_code == 404
 
-def test_busca_imovel_inexistente(client):
+@patch("servidor.db_pool")
+def test_busca_imovel_inexistente(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchone.return_value = None
+
     resposta = client.get("/imovel/999999")
+
     assert resposta.status_code == 404
 
-def test_id_existe(client):
+@patch("servidor.db_pool")
+def test_id_existe(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.fetchone.return_value = {"id": 1000}
+
     resposta = client.get("/imovel/1000")
     imovel = resposta.get_json()
 
