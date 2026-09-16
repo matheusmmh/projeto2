@@ -30,32 +30,37 @@ Buscar imóveis por cidade com todos os seus atributos;
 @app.route("/imoveis", methods=["GET"])
 def lista_imoveis():
     conn = db_pool.get_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute("SELECT * FROM imoveis")
-    imoveis = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-    return jsonify(imoveis),200
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM imoveis")
+        imoveis = cursor.fetchall()
+        return jsonify(imoveis), 200
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
 
 @app.route("/imovel/<int:id>", methods=["GET"])
 def busca_imovel(id):
     conn = db_pool.get_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM imoveis WHERE id = %s", (id,))
+        imovel = cursor.fetchone()
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
 
-    cursor.execute("SELECT * FROM imoveis WHERE id = %s", (id,))
-    imovel = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
     if imovel is None:
         return jsonify({"erro": "Imóvel não encontrado"}), 404
-    return jsonify(imovel),200
+    return jsonify(imovel), 200
 
 @app.route("/adicionar-imovel", methods=["POST"])
 def adiciona_imovel():
-    dados = request.get_json()
+    dados = request.get_json(silent=True)
 
     campos = [
         "logradouro",
@@ -68,7 +73,10 @@ def adiciona_imovel():
         "data_aquisicao"
     ]
 
-    # Verifica se todos os campos foram enviados
+    if not isinstance(dados, dict):
+        return jsonify({"erro": "JSON invalido"}), 400
+
+
     for campo in campos:
         if campo not in dados:
             return jsonify({
@@ -81,7 +89,6 @@ def adiciona_imovel():
             "erro": "O valor não pode ser negativo"
         }), 400
 
-    # Verifica o tipo do imóvel
     tipos_validos = [
         "casa",
         "apartamento",
@@ -94,6 +101,8 @@ def adiciona_imovel():
             "erro": "Tipo de imóvel inválido"
         }), 400
 
+    conn = None
+    cursor = None
     try:
         conn = db_pool.get_connection()
         cursor = conn.cursor()
@@ -128,9 +137,6 @@ def adiciona_imovel():
 
         id_imovel = cursor.lastrowid
 
-        cursor.close()
-        conn.close()
-
         return jsonify({
             "mensagem": "Imóvel adicionado com sucesso",
             "id": id_imovel
@@ -140,6 +146,11 @@ def adiciona_imovel():
         return jsonify({
             "erro": "Erro ao adicionar imóvel"
         }), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
 
 @app.route("/imovel/<int:id>", methods=["DELETE"])
 def remove_imovel():

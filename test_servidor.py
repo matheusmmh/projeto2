@@ -1,5 +1,4 @@
 from flask import Flask, request
-import mysql.connector
 from mysql.connector import Error
 from config import config
 from unittest.mock import MagicMock, patch
