@@ -141,13 +141,35 @@ def adiciona_imovel():
             "erro": "Erro ao adicionar imóvel"
         }), 500
 
-@app.route("/imovel/<int:id>", methods=["DELETE"])
-def remove_imovel():
-    conn = db_pool.get_connection()
-    cursor = conn.cursor(dictionary=True)
+@app.route("/imovel/<id>", methods=["DELETE"])
+def remove_imovel(id):
+    # Verifica se o ID é um número positivo
+    if not id.isdigit() or int(id) <= 0:
+        return jsonify({"erro": "ID do imóvel inválido"}), 400
 
-    
-    return
+    id = int(id)
+
+    conn = db_pool.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM imoveis WHERE id = %s", (id,))
+
+    # rowcount mostra quantos imóveis foram removidos
+    if cursor.rowcount == 0:
+        cursor.close()
+        conn.close()
+        return jsonify({"erro": "Imóvel não encontrado"}), 404
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    # O status 204 deve ser retornado sem conteúdo
+    return "", 204
+
+@app.route("/imovel/<id>", methods=["GET"])
+def busca_imovel_id_invalido(id):
+    return jsonify({"erro": "Imóvel não encontrado"}), 404
 
 @app.route("/tipo-imovel", methods=["GET"])
 def busca_tipo_imovel():
