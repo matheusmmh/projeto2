@@ -141,7 +141,7 @@ def adiciona_imovel():
             "erro": "Erro ao adicionar imóvel"
         }), 500
 
-@app.route("/imovel", methods=["DELETE"])
+@app.route("/imovel/<int:id>", methods=["DELETE"])
 def remove_imovel():
     return
 
