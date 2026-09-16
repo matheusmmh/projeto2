@@ -143,6 +143,10 @@ def adiciona_imovel():
 
 @app.route("/imovel/<int:id>", methods=["DELETE"])
 def remove_imovel():
+    conn = db_pool.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    
     return
 
 @app.route("/tipo-imovel", methods=["GET"])
