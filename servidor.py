@@ -41,7 +41,17 @@ def lista_imoveis():
 
 @app.route("/imovel/<int:id>", methods=["GET"])
 def busca_imovel(id):
-    return
+    conn = db_pool.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM imoveis WHERE id = %s", (id,))
+    imovel = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+    if imovel is None:
+        return jsonify({"erro": "Imóvel não encontrado"}), 404
+    return jsonify(imovel),200
 
 @app.route("/imovel", methods=["POST"])
 def adiciona_imovel():
