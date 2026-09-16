@@ -158,8 +158,50 @@ def remove_imovel():
 
 @app.route("/tipo-imovel", methods=["GET"])
 def busca_tipo_imovel():
-    return
+    tipo = request.args.get("tipo")
+    tipos_validos = {
+        "terreno",
+        "apartamento",
+        "casa",
+        "casa em condominio",
+    }
+
+    if tipo not in tipos_validos:
+        return jsonify({"erro": "Tipo de imovel invalido"}), 400
+
+    conn = db_pool.get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM imoveis WHERE tipo = %s",
+            (tipo,),
+        )
+        imoveis = cursor.fetchall()
+        return jsonify(imoveis), 200
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
 
 @app.route("/cidade-imovel", methods=["GET"])
 def busca_cidade_imovel():
-    return
+    cidade = request.args.get("cidade")
+
+    if cidade is None or not cidade.strip():
+        return jsonify({"erro": "Cidade obrigatoria"}), 400
+
+    conn = db_pool.get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT * FROM imoveis WHERE cidade = %s",
+            (cidade,),
+        )
+        imoveis = cursor.fetchall()
+        return jsonify(imoveis), 200
+    finally:
+        if cursor is not None:
+            cursor.close()
+        conn.close()
