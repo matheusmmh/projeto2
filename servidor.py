@@ -53,9 +53,93 @@ def busca_imovel(id):
         return jsonify({"erro": "Imóvel não encontrado"}), 404
     return jsonify(imovel),200
 
-@app.route("/imovel", methods=["POST"])
+@app.route("/adicionar-imovel", methods=["POST"])
 def adiciona_imovel():
-    return
+    dados = request.get_json()
+
+    campos = [
+        "logradouro",
+        "tipo_logradouro",
+        "bairro",
+        "cidade",
+        "cep",
+        "tipo",
+        "valor",
+        "data_aquisicao"
+    ]
+
+    # Verifica se todos os campos foram enviados
+    for campo in campos:
+        if campo not in dados:
+            return jsonify({
+                "erro": f"O campo {campo} é obrigatório"
+            }), 400
+
+    # Verifica o valor do imóvel
+    if dados["valor"] < 0:
+        return jsonify({
+            "erro": "O valor não pode ser negativo"
+        }), 400
+
+    # Verifica o tipo do imóvel
+    tipos_validos = [
+        "casa",
+        "apartamento",
+        "terreno",
+        "casa em condominio"
+    ]
+
+    if dados["tipo"] not in tipos_validos:
+        return jsonify({
+            "erro": "Tipo de imóvel inválido"
+        }), 400
+
+    try:
+        conn = db_pool.get_connection()
+        cursor = conn.cursor()
+
+        comando = """
+            INSERT INTO imoveis (
+                logradouro,
+                tipo_logradouro,
+                bairro,
+                cidade,
+                cep,
+                tipo,
+                valor,
+                data_aquisicao
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        valores = (
+            dados["logradouro"],
+            dados["tipo_logradouro"],
+            dados["bairro"],
+            dados["cidade"],
+            dados["cep"],
+            dados["tipo"],
+            dados["valor"],
+            dados["data_aquisicao"]
+        )
+
+        cursor.execute(comando, valores)
+        conn.commit()
+
+        id_imovel = cursor.lastrowid
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "mensagem": "Imóvel adicionado com sucesso",
+            "id": id_imovel
+        }), 201
+
+    except Exception:
+        return jsonify({
+            "erro": "Erro ao adicionar imóvel"
+        }), 500
 
 @app.route("/imovel", methods=["DELETE"])
 def remove_imovel():

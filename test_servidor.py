@@ -129,6 +129,9 @@ def novo_imovel_valido():
 
 @patch("servidor.db_pool")
 def test_adiciona_imovel_valido(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.lastrowid = 1001
+
     resposta = client.post("/adicionar-imovel", json=novo_imovel_valido())
 
     assert resposta.get_json()["mensagem"] == "Imóvel adicionado com sucesso"
@@ -136,6 +139,8 @@ def test_adiciona_imovel_valido(mock_pool, client):
 
 @patch("servidor.db_pool")
 def test_adiciona_imovel_retorna_status_201(mock_pool, client):
+    cursor = mock_pool.get_connection.return_value.cursor.return_value
+    cursor.lastrowid = 1001
     resposta = client.post("/adicionar-imovel", json=novo_imovel_valido())
 
     assert resposta.status_code == 201
